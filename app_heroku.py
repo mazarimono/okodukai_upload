@@ -1,6 +1,6 @@
 import base64
 import io
-import os # 追加
+import os  # 追加
 
 import dash
 import dash_core_components as dcc
@@ -21,10 +21,10 @@ upload_style = {
     "margin": "10px",
     "margin": "3% auto",
 }
-external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
+external_stylesheets = ["https://codepen.io/chriddyp/pen/bWLwgP.css"]
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
-app.config.suppress_callback_exceptions=True
-server = app.server # 追加
+app.config.suppress_callback_exceptions = True
+server = app.server  # 追加
 
 app.layout = html.Div(
     [
@@ -33,9 +33,11 @@ app.layout = html.Div(
             children=html.Div(["お小遣いのファイルを", html.A("csvかexcelで頂戴！")]),
             style=upload_style,
         ),
-        dcc.Dropdown(id="my_dropdown", multi=True, style={"width": "75%", "margin": "auto"}),
-            dcc.Graph(id="my_okodukai_graph"),
-        dcc.Store(id="tin_man", storage_type="memory")
+        dcc.Dropdown(
+            id="my_dropdown", multi=True, style={"width": "75%", "margin": "auto"}
+        ),
+        dcc.Graph(id="my_okodukai_graph"),
+        dcc.Store(id="tin_man", storage_type="memory"),
     ]
 )
 
@@ -56,9 +58,15 @@ def parse_content(contents, filename):
     return df
 
 
-
-@app.callback([Output("my_dropdown", "options"), Output("my_dropdown", "value"), Output("tin_man", "data")],
-            [Input("my_okodukai", "contents")], [State("my_okodukai", "filename")], prevent_initial_call=True,
+@app.callback(
+    [
+        Output("my_dropdown", "options"),
+        Output("my_dropdown", "value"),
+        Output("tin_man", "data"),
+    ],
+    [Input("my_okodukai", "contents")],
+    [State("my_okodukai", "filename")],
+    prevent_initial_call=True,
 )
 def update_dropdown(contents, filename):
     df = parse_content(contents, filename)
@@ -67,12 +75,18 @@ def update_dropdown(contents, filename):
     df_dict = df.to_dict("records")
     return options, [select_value], df_dict
 
-@app.callback(Output("my_okodukai_graph", "figure"), [Input("my_dropdown", "value")],
-[State("tin_man", "data")], prevent_initial_call=True)
+
+@app.callback(
+    Output("my_okodukai_graph", "figure"),
+    [Input("my_dropdown", "value")],
+    [State("tin_man", "data")],
+    prevent_initial_call=True,
+)
 def update_graph(selected_values, data):
     df = pd.DataFrame(data)
     df_selected = df[df["variable"].isin(selected_values)]
     return px.line(df_selected, x="date", y="value", color="variable")
+
 
 if __name__ == "__main__":
     app.run_server(debug=True)
